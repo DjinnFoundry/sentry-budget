@@ -134,13 +134,14 @@ Los consumidores fijan versión exacta, sin `^` ni `~`:
 pnpm add @djinnfoundry/sentry-budget@1.0.0
 ```
 
-Se publica en GitHub Packages. Ojo: el registro npm de GitHub pide
-autenticación para instalar **incluso de un repo público**, así que cada
-consumidor necesita un token con `read:packages` en su `.npmrc` o en su CI.
+Se publica en npmjs como paquete público, así que **no hace falta ningún token
+para instalarlo**: ni en GitHub Actions, ni en el entorno de build de Cloudflare
+Pages, ni en un Dockerfile, ni en tu portátil. El registro npm de GitHub se
+descartó por lo contrario: devuelve 401 sin token incluso para un paquete de un
+repo público, y varios consumidores los construye Cloudflare Pages, donde no hay
+token de GitHub que ofrecer.
 
 ## Licencia
 
-Todos los derechos reservados (`UNLICENSED`). El repo es público para que los
-consumidores y el CI puedan leerlo, no como invitación a reutilizarlo. Si
-interesa abrirlo de verdad, MIT es lo que corresponde a una utilidad de este
-tamaño y basta con cambiar el campo `license` y añadir el fichero.
+MIT. Es una utilidad pequeña y genérica: el problema que resuelve lo tiene
+cualquiera con una organización de Sentry en un plan sin límite por proyecto.

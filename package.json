@@ -2,7 +2,7 @@
   "name": "@djinnfoundry/sentry-budget",
   "version": "1.0.0",
   "description": "El tope de eventos de Sentry del estudio: una sola politica, adaptadores para navegador y para Workers.",
-  "license": "UNLICENSED",
+  "license": "MIT",
   "private": false,
   "type": "module",
   "repository": {
@@ -10,9 +10,14 @@
     "url": "git+https://github.com/DjinnFoundry/sentry-budget.git"
   },
   "publishConfig": {
-    "registry": "https://npm.pkg.github.com"
+    "access": "public",
+    "registry": "https://registry.npmjs.org"
   },
-  "files": ["dist", "README.md"],
+  "files": [
+    "dist",
+    "README.md",
+    "LICENSE"
+  ],
   "exports": {
     ".": {
       "types": "./dist/index.d.ts",
@@ -40,5 +45,12 @@
     "typescript": "5.7.3",
     "vitest": "4.1.11"
   },
-  "packageManager": "pnpm@10.6.2"
+  "packageManager": "pnpm@10.6.2",
+  "keywords": [
+    "sentry",
+    "rate-limit",
+    "quota",
+    "cloudflare-workers",
+    "error-reporting"
+  ]
 }

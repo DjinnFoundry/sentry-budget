@@ -1,8 +1,14 @@
-# Publica en GitHub Packages cuando se empuja un tag `v*`.
+# Publica en npmjs cuando se empuja un tag `v*`.
 #
 # Nada se publica a mano: el paquete lleva el tope que protege la cuota de
-# Sentry de todo el estudio, así que una versión que no haya pasado typecheck,
-# tests y build no debe poder llegar a ningún consumidor.
+# Sentry de todo el estudio, asi que una version que no haya pasado typecheck,
+# tests y build no debe poder llegar a ningun consumidor.
+#
+# npmjs y no GitHub Packages: el registro npm de GitHub devuelve 401 sin token
+# SIEMPRE, incluso para un paquete de un repo publico, y varios consumidores los
+# construye Cloudflare Pages, donde no hay token de GitHub que ofrecer. Un
+# paquete publico en npmjs se instala sin credencial en cualquier entorno de
+# build; solo publicar necesita token, y es este secreto.
 name: publish
 
 on:
@@ -14,7 +20,7 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       contents: read
-      packages: write
+      id-token: write # procedencia (provenance) firmada por el runner
     steps:
       - uses: actions/checkout@v5
       - uses: pnpm/action-setup@v4
@@ -23,16 +29,14 @@ jobs:
       - uses: actions/setup-node@v5
         with:
           node-version: 22
-          registry-url: https://npm.pkg.github.com
-          scope: '@djinnfoundry'
-      # `--frozen-lockfile` para que el CI instale lo que dice el lockfile y no
-      # resuelva nada nuevo por su cuenta.
+          registry-url: https://registry.npmjs.org
       - run: pnpm install --frozen-lockfile
       - run: pnpm run typecheck
       - run: pnpm exec vitest run --coverage
       - run: pnpm run build
-      # `--no-git-checks` porque el tag ya es la comprobación: el workflow solo
-      # corre sobre tags, y la rama en la que se creó no cambia nada.
-      - run: pnpm publish --no-git-checks
+      # `--no-git-checks` porque el tag ya es la comprobacion: el workflow solo
+      # corre sobre tags. `--provenance` deja constancia verificable de que el
+      # tarball salio de este commit y de este workflow.
+      - run: pnpm publish --no-git-checks --provenance --access public
         env:
-          NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
