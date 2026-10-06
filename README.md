@@ -126,7 +126,15 @@ git push --follow-tags
 ```
 
 El tag dispara `.github/workflows/publish.yml`, que vuelve a pasar typecheck,
-tests y build antes de publicar en GitHub Packages. Nada se publica a mano.
+tests y build antes de publicar. Nada se publica a mano.
+
+No hay `NPM_TOKEN`. Se publica con **trusted publishing** (OIDC): el runner
+presenta una identidad firmada por GitHub y npm la valida contra el publicador de
+confianza declarado en los ajustes del paquete. npm revocó todos los tokens
+clásicos el 2025-12-09 y los granulares con permiso de escritura caducan a los 90
+días, así que un token guardado aquí sería una cita en el calendario cuatro veces
+al año y un paquete sin publicar el día que se olvide. Con OIDC la procedencia se
+genera sola, sin pedir `--provenance`.
 
 Los consumidores fijan versión exacta, sin `^` ni `~`:
 

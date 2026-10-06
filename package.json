@@ -1,6 +1,6 @@
 {
   "name": "@djinnfoundry/sentry-budget",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "El tope de eventos de Sentry del estudio: una sola politica, adaptadores para navegador y para Workers.",
   "license": "MIT",
   "private": false,

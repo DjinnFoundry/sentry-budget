@@ -1,14 +1,18 @@
 # Publica en npmjs cuando se empuja un tag `v*`.
 #
-# Nada se publica a mano: el paquete lleva el tope que protege la cuota de
-# Sentry de todo el estudio, asi que una version que no haya pasado typecheck,
-# tests y build no debe poder llegar a ningun consumidor.
+# Sin secretos. Usa trusted publishing (OIDC): el runner presenta una identidad
+# firmada por GitHub y npm la valida contra el publicador de confianza declarado
+# en los ajustes del paquete. No hay NPM_TOKEN que guardar ni que renovar.
 #
-# npmjs y no GitHub Packages: el registro npm de GitHub devuelve 401 sin token
-# SIEMPRE, incluso para un paquete de un repo publico, y varios consumidores los
-# construye Cloudflare Pages, donde no hay token de GitHub que ofrecer. Un
-# paquete publico en npmjs se instala sin credencial en cualquier entorno de
-# build; solo publicar necesita token, y es este secreto.
+# Eso importa porque npm revoco todos los tokens clasicos el 2025-12-09 y los
+# granulares con permiso de escritura caducan a los 90 dias: un token aqui seria
+# una cita en el calendario cuatro veces al ano y un paquete sin publicar el dia
+# que se olvide. OIDC tampoco hace falta pedir `--provenance`: con trusted
+# publishing la procedencia se genera sola.
+#
+# El `publish` lo hace npm y no pnpm a proposito: el soporte de OIDC en npm esta
+# documentado desde 11.5.1, y es npm quien valida el token. pnpm sigue haciendo
+# la instalacion, el typecheck, los tests y el build.
 name: publish
 
 on:
@@ -20,23 +24,32 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       contents: read
-      id-token: write # procedencia (provenance) firmada por el runner
+      id-token: write # lo que firma la identidad del runner para OIDC
     steps:
       - uses: actions/checkout@v5
       - uses: pnpm/action-setup@v4
         with:
           version: 10.6.2
+      # Node 24 trae npm 11.x. Trusted publishing pide npm >= 11.5.1 y node
+      # >= 22.14.0; el paso siguiente lo comprueba para que un cambio de imagen
+      # del runner falle con un mensaje claro y no con un 401 incomprensible.
       - uses: actions/setup-node@v5
         with:
-          node-version: 22
+          node-version: 24
           registry-url: https://registry.npmjs.org
+      - name: Comprobar que npm soporta OIDC
+        run: |
+          v=$(npm --version)
+          min=11.5.1
+          echo "npm $v (minimo $min)"
+          if [ "$(printf '%s\n%s\n' "$min" "$v" | sort -V | head -1)" != "$min" ]; then
+            echo "npm $v no soporta trusted publishing; hace falta >= $min" >&2
+            exit 1
+          fi
       - run: pnpm install --frozen-lockfile
       - run: pnpm run typecheck
       - run: pnpm exec vitest run --coverage
       - run: pnpm run build
-      # `--no-git-checks` porque el tag ya es la comprobacion: el workflow solo
-      # corre sobre tags. `--provenance` deja constancia verificable de que el
-      # tarball salio de este commit y de este workflow.
-      - run: pnpm publish --no-git-checks --provenance --access public
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+      # `--access public` ya esta en publishConfig; se repite aqui para que el
+      # comando diga la verdad por si alguien lo copia a mano.
+      - run: npm publish --access public
