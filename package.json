@@ -1,0 +1,44 @@
+{
+  "name": "@djinnfoundry/sentry-budget",
+  "version": "1.0.0",
+  "description": "El tope de eventos de Sentry del estudio: una sola politica, adaptadores para navegador y para Workers.",
+  "license": "UNLICENSED",
+  "private": false,
+  "type": "module",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/djinnfoundry/sentry-budget.git"
+  },
+  "publishConfig": {
+    "registry": "https://npm.pkg.github.com"
+  },
+  "files": ["dist", "README.md"],
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    },
+    "./browser": {
+      "types": "./dist/browser.d.ts",
+      "import": "./dist/browser.js"
+    },
+    "./worker": {
+      "types": "./dist/worker.d.ts",
+      "import": "./dist/worker.js"
+    }
+  },
+  "sideEffects": false,
+  "scripts": {
+    "build": "tsc -p tsconfig.build.json",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "prepublishOnly": "pnpm run typecheck && pnpm run test && pnpm run build"
+  },
+  "devDependencies": {
+    "@vitest/coverage-v8": "4.1.2",
+    "typescript": "5.7.3",
+    "vitest": "4.1.11"
+  },
+  "packageManager": "pnpm@10.6.2"
+}

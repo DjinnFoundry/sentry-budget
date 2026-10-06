@@ -1,0 +1,38 @@
+# Publica en GitHub Packages cuando se empuja un tag `v*`.
+#
+# Nada se publica a mano: el paquete lleva el tope que protege la cuota de
+# Sentry de todo el estudio, así que una versión que no haya pasado typecheck,
+# tests y build no debe poder llegar a ningún consumidor.
+name: publish
+
+on:
+  push:
+    tags: ['v*']
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+    steps:
+      - uses: actions/checkout@v5
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 10.6.2
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 22
+          registry-url: https://npm.pkg.github.com
+          scope: '@djinnfoundry'
+      # `--frozen-lockfile` para que el CI instale lo que dice el lockfile y no
+      # resuelva nada nuevo por su cuenta.
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm run typecheck
+      - run: pnpm exec vitest run --coverage
+      - run: pnpm run build
+      # `--no-git-checks` porque el tag ya es la comprobación: el workflow solo
+      # corre sobre tags, y la rama en la que se creó no cambia nada.
+      - run: pnpm publish --no-git-checks
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
