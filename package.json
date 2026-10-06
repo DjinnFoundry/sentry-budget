@@ -7,7 +7,7 @@
   "type": "module",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/djinnfoundry/sentry-budget.git"
+    "url": "git+https://github.com/DjinnFoundry/sentry-budget.git"
   },
   "publishConfig": {
     "registry": "https://npm.pkg.github.com"

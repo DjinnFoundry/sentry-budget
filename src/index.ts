@@ -1,21 +1,18 @@
 /**
  * El tope de eventos de Sentry del estudio.
  *
- * Por qué existe este paquete y no una copia por repo: la organización de
- * Sentry de Djinn Foundry comparte **una** cuota mensual de errores entre todos
- * los productos y su plan no tiene límite por proyecto. El 2026-09-02 el Worker
- * de AudioKids mandó 4.895 eventos de una consulta que fallaba en cada
- * petición, agotó la cuota del mes el primer día, y durante treinta días
- * ninguno de los otros productos vio un solo error propio. Poner `rateLimit` en
- * la clave de cliente no sirve: es del plan Business.
+ * Por qué existe este paquete y no una copia por repo: una organización de
+ * Sentry en plan Developer o Team comparte **una** cuota mensual de errores
+ * entre todos sus proyectos y no tiene límite por proyecto, que es del plan
+ * Business. Un Worker con una consulta que fallaba en cada petición mandó 4.895
+ * eventos el primer día del periodo, agotó la cuota del mes, y durante treinta
+ * días ninguno de los otros proyectos vio un solo error propio. Poner
+ * `rateLimit` en la clave de cliente no sirve: el plan lo ignora en silencio.
  *
  * O sea: el tope es la única defensa real, tiene que estar en el código de cada
  * producto, y por tanto la política tiene que estar escrita una vez. Se escribió
- * tres veces (yukids, djinncom, audiokids) y en la tercera se repitió el mismo
- * error que la segunda ya documentaba en un comentario. De ahí el paquete.
- *
- * El contrato en prosa, con los números medidos, vive en el vault:
- * `Operations/Sentry.md`. Esto es su implementación.
+ * cuatro veces y en la cuarta se repitió el mismo error que la segunda ya
+ * documentaba en un comentario. De ahí el paquete.
  *
  * Aquí está solo la decisión, sin E/S: contar y decidir son puros, así que se
  * prueban sin navegador y sin Worker. La persistencia y el transporte van en

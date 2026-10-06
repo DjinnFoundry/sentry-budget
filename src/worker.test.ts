@@ -1,7 +1,7 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { createWorkerReporter, fromError, type CacheLike } from './worker.js';
 
-const DSN = 'https://clavepublica@o4510816747978752.ingest.de.sentry.io/4510816776224848';
+const DSN = 'https://clavepublica@o0000000000000000.ingest.de.sentry.io/2222222222222222';
 const NOW = Date.parse('2026-10-06T10:00:00.000Z');
 
 /** Cache API de pega: persiste entre llamadas, como la del colo. */
@@ -86,7 +86,7 @@ describe('createWorkerReporter', () => {
 
     expect(enviados).toHaveLength(1);
     const { url, init } = enviados[0]!;
-    expect(url).toBe('https://o4510816747978752.ingest.de.sentry.io/api/4510816776224848/envelope/');
+    expect(url).toBe('https://o0000000000000000.ingest.de.sentry.io/api/2222222222222222/envelope/');
     expect((init.headers as Record<string, string>)['X-Sentry-Auth']).toContain(
       'sentry_key=clavepublica',
     );

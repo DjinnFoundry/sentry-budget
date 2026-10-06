@@ -8,7 +8,7 @@ import {
   type StorageLike,
 } from './browser.js';
 
-const DSN = 'https://clavepublica@o4510816747978752.ingest.de.sentry.io/4511186679824464';
+const DSN = 'https://clavepublica@o0000000000000000.ingest.de.sentry.io/1111111111111111';
 const NOW = Date.parse('2026-10-06T10:00:00.000Z');
 
 /** `localStorage` de pega, con la opción de fallar como en modo privado. */
@@ -226,7 +226,7 @@ describe('createReporter', () => {
     expect(reportero()({ type: 'TypeError', message: 'x', stack: 'at f' })).toEqual({ sent: true });
     expect(enviados).toHaveLength(1);
     const { url, init } = enviados[0]!;
-    expect(url).toBe('https://o4510816747978752.ingest.de.sentry.io/api/4511186679824464/envelope/');
+    expect(url).toBe('https://o0000000000000000.ingest.de.sentry.io/api/1111111111111111/envelope/');
     const headers = init.headers as Record<string, string>;
     expect(headers['X-Sentry-Auth']).toContain('sentry_key=clavepublica');
     expect(init.keepalive).toBe(true);
