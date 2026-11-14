@@ -150,6 +150,31 @@ describe('createWorkerReporter', () => {
     throw new Error('el tope diario no cortó');
   });
 
+  it('un issue en bucle no gasta el día de los demás: el tope por issue va primero', async () => {
+    const report = reportero({ limits: { perLoad: 99, perDay: 5, perIssue: 2 } });
+    for (let i = 0; i < 10; i += 1) {
+      await expect(report(new Error('D1 caído')), `copia ${i + 1}`).resolves.toEqual(
+        i < 2 ? { sent: true } : { sent: false, reason: 'per_issue' },
+      );
+    }
+    // Las ocho copias rechazadas no han tocado el día: quedan tres huecos.
+    for (const palabra of ['alfa', 'bravo', 'charlie']) {
+      await expect(report(new Error(`falla ${palabra}`)), palabra).resolves.toEqual({ sent: true });
+    }
+    await expect(report(new Error('falla delta'))).resolves.toEqual({
+      sent: false, reason: 'per_day',
+    });
+    expect(enviados).toHaveLength(5);
+  });
+
+  it('un evento rechazado por el día no gasta la cuota de su issue', async () => {
+    const cache = cacheFalsa();
+    const report = reportero({ cache, limits: { perLoad: 99, perDay: 1, perIssue: 5 } });
+    await expect(report(new Error('alfa'))).resolves.toEqual({ sent: true });
+    await expect(report(new Error('bravo'))).resolves.toEqual({ sent: false, reason: 'per_day' });
+    expect([...cache.almacen.keys()].filter((k) => k.includes('bravo'))).toEqual([]);
+  });
+
   it('el tope por isolate corta sin tocar la caché', async () => {
     const cache = cacheFalsa();
     const report = reportero({ cache, limits: { perLoad: 2, perDay: 99, perIssue: 99 } });
@@ -197,6 +222,33 @@ describe('createWorkerReporter', () => {
       },
     });
     await expect(report(new Error('x'))).resolves.toEqual({ sent: true });
+  });
+
+  it('basura en un contador de la caché cuenta como cero', async () => {
+    const cache = cacheFalsa();
+    const report = reportero({ cache, limits: { perLoad: 99, perDay: 99, perIssue: 1 } });
+    await report(new Error('igual'));
+    for (const clave of cache.almacen.keys()) cache.almacen.set(clave, 'no es un número');
+    await expect(report(new Error('igual'))).resolves.toEqual({ sent: true });
+  });
+
+  it('si solo el día es ilegible, el tope por issue sigue cortando', async () => {
+    const cache = cacheFalsa();
+    const report = reportero({
+      cache: {
+        match: async (request) => {
+          if (request.url.includes('day%3A')) throw new Error('clave del día caída');
+          return cache.match(request);
+        },
+        put: (request, response) => cache.put(request, response),
+      },
+      limits: { perLoad: 99, perDay: 1, perIssue: 2 },
+    });
+    await expect(report(new Error('igual'))).resolves.toEqual({ sent: true });
+    await expect(report(new Error('igual'))).resolves.toEqual({ sent: true });
+    await expect(report(new Error('igual'))).resolves.toEqual({ sent: false, reason: 'per_issue' });
+    // El día no se pudo leer, así que no se escribe: no se pisa lo que haya.
+    expect([...cache.almacen.keys()].some((k) => k.includes('day%3A'))).toBe(false);
   });
 
   it('una caché que lanza solo al escribir cuenta como que cabe', async () => {

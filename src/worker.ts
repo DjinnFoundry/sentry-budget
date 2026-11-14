@@ -58,27 +58,28 @@ function defaultCache(): CacheLike | null {
 }
 
 /**
- * Suma uno al contador de `key` y dice si cabe en `limit`.
- *
- * Una caché ilegible nunca debe impedir el reporte: ante la duda deja pasar,
- * porque perder visibilidad es peor que pasarse un evento.
+ * Un contador de la Cache API. `used` es `null` si no se pudo leer: entonces
+ * cuenta como cero para decidir y no se escribe, para no pisar un valor que
+ * existe pero no se ha podido ver. Ante la duda deja pasar, porque perder
+ * visibilidad es peor que pasarse un evento.
  */
-async function fits(
-  cache: CacheLike | null,
-  origin: string,
-  key: string,
-  limit: number,
-): Promise<boolean> {
-  if (!cache) return true;
+interface Slot {
+  request: Request;
+  used: number | null;
+}
+
+async function readSlot(cache: CacheLike, origin: string, key: string): Promise<Slot> {
   const request = new Request(`${origin}/${encodeURIComponent(key)}`);
-  let used = 0;
   try {
     const hit = await cache.match(request);
-    if (hit) used = Number(await hit.text()) || 0;
+    return { request, used: hit ? Number(await hit.text()) || 0 : 0 };
   } catch {
-    return true;
+    return { request, used: null };
   }
-  if (used >= limit) return false;
+}
+
+async function bump(cache: CacheLike, { request, used }: Slot): Promise<void> {
+  if (used === null) return;
   try {
     await cache.put(
       request,
@@ -87,7 +88,6 @@ async function fits(
   } catch {
     /* si no se puede contar, se reporta igual */
   }
-  return true;
 }
 
 function buildEnvelope(
@@ -184,12 +184,23 @@ export function createWorkerReporter(options: WorkerReporterOptions) {
     const local = decide({ event, counters: null, sentThisLoad: sentThisIsolate, limits });
     if (!local.send) return { sent: false, reason: local.reason };
 
-    const day = utcDay(now());
-    if (!(await fits(cache, origin, `day:${day}`, limits.perDay))) {
-      return { sent: false, reason: 'per_day' };
-    }
-    if (!(await fits(cache, origin, `issue:${day}:${fingerprint(event)}`, limits.perIssue))) {
-      return { sent: false, reason: 'per_issue' };
+    if (cache) {
+      // Se lee todo, decide la política pura (issue antes que día) y solo se
+      // suma si el evento sale: una copia rechazada no gasta el día de nadie.
+      const day = utcDay(now());
+      const issue = fingerprint(event);
+      const [total, perIssue] = await Promise.all([
+        readSlot(cache, origin, `day:${day}`),
+        readSlot(cache, origin, `issue:${day}:${issue}`),
+      ]);
+      const verdict = decide({
+        event,
+        counters: { day, total: total.used ?? 0, issues: { [issue]: perIssue.used ?? 0 } },
+        sentThisLoad: sentThisIsolate,
+        limits,
+      });
+      if (!verdict.send) return { sent: false, reason: verdict.reason };
+      await Promise.all([bump(cache, total), bump(cache, perIssue)]);
     }
 
     let envelope: ReturnType<typeof buildEnvelope>;
