@@ -135,6 +135,10 @@ export interface DecideInput {
 /**
  * Decide si un evento se manda. Pura: no lee, no escribe, no envía.
  *
+ * El tope por issue va antes que el diario: un fallo en bucle se corta solo y
+ * no se le apunta al día, que es de todos los issues. Un evento descartado no
+ * cuenta en ningún contador; quien persiste solo suma lo que se manda.
+ *
  * Sin contadores —`localStorage` bloqueado, Cache API caída— solo queda el tope
  * por carga. Ante la duda deja pasar: perder visibilidad es peor que pasarse un
  * evento, y el tope por carga ya acota el bucle inmediato, que es el que agota
@@ -144,9 +148,9 @@ export function decide({ event, counters, sentThisLoad, limits }: DecideInput): 
   if (isKnownNoise(event)) return { send: false, reason: 'noise' };
   if (sentThisLoad >= limits.perLoad) return { send: false, reason: 'per_load' };
   if (counters) {
-    if (counters.total >= limits.perDay) return { send: false, reason: 'per_day' };
     const used = counters.issues[fingerprint(event)] ?? 0;
     if (used >= limits.perIssue) return { send: false, reason: 'per_issue' };
+    if (counters.total >= limits.perDay) return { send: false, reason: 'per_day' };
   }
   return { send: true };
 }

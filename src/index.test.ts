@@ -149,7 +149,21 @@ describe('decide', () => {
     });
   });
 
-  it('el orden es carga, día, issue: el tope más barato primero', () => {
+  it('un issue agotado se corta por issue aunque el día también esté lleno', () => {
+    // El tope por issue va antes que el diario: un fallo en bucle se corta solo
+    // y no se le atribuye al día, que es de todos los issues del proyecto.
+    const key = fingerprint({ type: 'Error', message: 'igual' });
+    expect(
+      decide({
+        event: { type: 'Error', message: 'igual' },
+        counters: counters(10, { [key]: 2 }),
+        sentThisLoad: 0,
+        limits,
+      })
+    ).toEqual({ send: false, reason: 'per_issue' });
+  });
+
+  it('el orden es carga, issue, día: el tope por carga corta antes que nada', () => {
     const key = fingerprint({ type: 'Error', message: 'igual' });
     expect(
       decide({

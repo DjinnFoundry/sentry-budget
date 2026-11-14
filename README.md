@@ -30,9 +30,13 @@ viene a terminar.
 | Tope | Qué corta |
 |---|---|
 | por carga / isolate | el bucle inmediato, sin tocar almacén ni caché |
-| por día | que un dispositivo o un colo gaste el mes del estudio |
 | por issue y día | el evento 500 del mismo fallo, que no informa más que el 5 |
+| por día | que un dispositivo o un colo gaste el mes del estudio |
 | ruido conocido | extensiones, `Script error.` de otro origen, ResizeObserver, abortos |
+
+Se aplican en ese orden y un evento descartado no cuenta en ningún contador. Un
+issue en bucle se corta en su tope y no gasta el día de los demás issues del
+proyecto.
 
 Nunca lanza, nunca retrasa la respuesta que lo origina y no añade dependencias.
 Sin DSN no hace nada, que es lo que quieren `dev` y los tests.
