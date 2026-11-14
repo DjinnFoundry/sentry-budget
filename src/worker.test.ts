@@ -236,11 +236,11 @@ describe('createWorkerReporter', () => {
     const cache = cacheFalsa();
     const report = reportero({
       cache: {
-        match: async (request) => {
+        match: async (request: Request) => {
           if (request.url.includes('day%3A')) throw new Error('clave del día caída');
           return cache.match(request);
         },
-        put: (request, response) => cache.put(request, response),
+        put: (request: Request, response: Response) => cache.put(request, response),
       },
       limits: { perLoad: 99, perDay: 1, perIssue: 2 },
     });
