@@ -1,6 +1,6 @@
 {
   "name": "@djinnfoundry/sentry-budget",
-  "version": "1.0.3",
+  "version": "1.0.4",
   "description": "El tope de eventos de Sentry del estudio: una sola politica, adaptadores para navegador y para Workers.",
   "license": "MIT",
   "private": false,
@@ -21,15 +21,18 @@
   "exports": {
     ".": {
       "types": "./dist/index.d.ts",
-      "import": "./dist/index.js"
+      "import": "./dist/index.js",
+      "default": "./dist/index.js"
     },
     "./browser": {
       "types": "./dist/browser.d.ts",
-      "import": "./dist/browser.js"
+      "import": "./dist/browser.js",
+      "default": "./dist/browser.js"
     },
     "./worker": {
       "types": "./dist/worker.d.ts",
-      "import": "./dist/worker.js"
+      "import": "./dist/worker.js",
+      "default": "./dist/worker.js"
     }
   },
   "sideEffects": false,
