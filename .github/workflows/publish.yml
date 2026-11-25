@@ -28,7 +28,7 @@ jobs:
     steps:
       - uses: actions/checkout@v5
       - uses: pnpm/action-setup@v4
-      # Node 24 trae npm 11.x. Trusted publishing pide npm >= 11.5.1 y node
+      # El Node de .node-version trae npm 11.x. Trusted publishing pide npm >= 11.5.1 y node
       # >= 22.14.0; el paso siguiente lo comprueba para que un cambio de imagen
       # del runner falle con un mensaje claro y no con un 401 incomprensible.
       - uses: actions/setup-node@v5
