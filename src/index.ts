@@ -183,3 +183,5 @@ export function parseCounters(raw: unknown, day: string): Counters {
     value.issues && typeof value.issues === 'object' ? (value.issues as Record<string, number>) : {};
   return { day, total: Number(value.total) || 0, issues };
 }
+
+export * from './sentry-v10-defaults.js';

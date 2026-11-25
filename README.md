@@ -104,6 +104,29 @@ Los valores por defecto son `BROWSER_LIMITS` (3 / 20 / 2) y `WORKER_LIMITS`
 (20 / 60 / 5). El navegador es más estricto a propósito: un fallo de página se
 dispara una vez por visitante y buena parte de lo que reporta no es nuestro.
 
+### Sentry 11 con lo que recogía Sentry 10
+
+Sentry 11 quitó `sendDefaultPii`. Sin `dataCollection` recoge datos del usuario
+e IP, cookies, cabeceras sin filtrar, cuerpos HTTP, consultas de base de datos y
+entradas y salidas de IA. `SENTRY_V10_DATA_COLLECTION` es la base de la v10 que
+da su [guía de migración](https://github.com/getsentry/sentry-javascript/blob/11.16.0/MIGRATION.md),
+y `SENTRY_V10_DEFAULTS` le añade los otros dos valores por defecto que cambiaron:
+`attachStacktrace: false` y `traceLifecycle: 'static'` (una transacción por
+carga en lugar de spans por lotes).
+
+```ts
+import { SENTRY_V10_DATA_COLLECTION, SENTRY_V10_DEFAULTS } from '@djinnfoundry/sentry-budget';
+
+// Solo la privacidad de la v10:
+Sentry.init({ dsn, dataCollection: SENTRY_V10_DATA_COLLECTION });
+
+// Los tres valores de la v10:
+Sentry.init({ dsn, ...SENTRY_V10_DEFAULTS });
+```
+
+Los tipos son estructurales y encajan con los de `@sentry/core` 11: el paquete
+sigue sin dependencias.
+
 ## La cuarentena de 4 días
 
 Si tienes una cuarentena de publicación (`minimumReleaseAge` en pnpm, por

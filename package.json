@@ -1,6 +1,6 @@
 {
   "name": "@djinnfoundry/sentry-budget",
-  "version": "1.0.4",
+  "version": "1.1.0",
   "description": "El tope de eventos de Sentry del estudio: una sola politica, adaptadores para navegador y para Workers.",
   "license": "MIT",
   "private": false,
@@ -44,6 +44,7 @@
     "prepublishOnly": "pnpm run typecheck && pnpm run test && pnpm run build"
   },
   "devDependencies": {
+    "@sentry/core": "11.16.0",
     "@vitest/coverage-v8": "4.1.2",
     "typescript": "5.7.3",
     "vitest": "4.1.11"
