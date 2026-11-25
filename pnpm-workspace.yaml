@@ -1,0 +1,5 @@
+minimumReleaseAge: 5760
+overrides:
+  '@esbuild-kit/core-utils>esbuild': 0.25.12
+  'sharp@<0.35.5': 0.35.5
+  'tar@<7.5.23': 7.5.23
