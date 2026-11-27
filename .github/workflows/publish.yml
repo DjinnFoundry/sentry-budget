@@ -19,6 +19,11 @@ on:
   push:
     tags: ['v*']
 
+# Una publicación no se corta a medias: otra del mismo tag espera a que acabe.
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: false
+
 jobs:
   publish:
     runs-on: ubuntu-latest
